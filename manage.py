@@ -1,5 +1,4 @@
-import os
-from flask.cli import AppGroup
+from flask.cli import AppGroup, with_appcontext
 
 from app import create_app
 
@@ -8,10 +7,11 @@ app = create_app()
 cli = AppGroup('manage', help='migrate commands')
 
 @cli.command('migrate')
+@with_appcontext
 def migrate():
     from app.agents.models import Bot
     from app.intents.controllers import import_json
-    from app.nlu.tasks import train_models
+    from app.nlu.training import train_models
 
     # Create default bot
     try:
@@ -24,18 +24,18 @@ def migrate():
 
     # Import default intents
     try:
-        with open("examples/default_intents.json", "r") as json_file:
+        with open("migrations/default_intents.json", "r") as json_file:
             stories = import_json(json_file)
             print(f"Imported {len(stories)} Stories")
     except FileNotFoundError:
-        print("Error: 'examples/default_intents.json' file not found.")
+        print("Error: 'migrations/default_intents.json' file not found.")
     except Exception as e:
         print(f"Failed to import intents: {e}")
 
     # Train models
     try:
         print("Training models..")
-        train_models()
+        train_models(app)
         print("Training models finished.")
     except Exception as e:
         error_message = str(e)

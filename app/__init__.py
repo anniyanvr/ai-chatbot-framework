@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_mongoengine import MongoEngine
 from config import config
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__ + "../../"))
+admin_panel_dist = 'static/'
 
 db = MongoEngine()
 
@@ -20,6 +20,7 @@ def create_app(env="Development"):
         app.logger.info('Unknown environment key, defaulting to Development')
 
     app.config.from_object(config[env])
+    app.config.from_prefixed_env(prefix='APP')
 
     CORS(app)
     db.init_app(app)
@@ -41,8 +42,6 @@ def create_app(env="Development"):
     app.register_blueprint(chat)
     app.register_blueprint(bots)
     app.register_blueprint(entities_blueprint)
-
-    admin_panel_dist = os.path.join(APP_ROOT, 'frontend/dist/')
 
     @app.route('/ready')
     def ready():
